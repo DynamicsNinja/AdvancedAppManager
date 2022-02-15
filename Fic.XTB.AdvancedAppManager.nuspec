@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Fic.XTB.AdvancedAppManager</id>
+    <version>1.2022.2.1</version>
+    <title>Advanced App Manager for XrmToolBox</title>
+    <authors>Ivan Ficko</authors>
+    <owners></owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <projectUrl>https://github.com/DynamicsNinja/AdvancedAppManager</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/DynamicsNinja/AdvancedAppManager/main/docs/img/aam-300.png</iconUrl>
+    <description>XrmToolBox tool that provides you with advanced model-driven app customizations.</description>
+    <summary>XrmToolBox tool that provides you with advanced model-driven app customizations.</summary>
+    <releaseNotes>1.2022.2.1
+- Initial version of the tool released
+    </releaseNotes>
+    <copyright>Copyright 2022 Ivan Ficko</copyright>
+    <tags>XrmToolBox Plugins AdvancedAppManager</tags>
+    <dependencies>
+      <dependency id="XrmToolBox" version="1.2018.6.25" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="AdvancedAppManager\bin\Release\Plugins\Fic.XTB.AdvancedAppManager.dll" target="lib\net472\Plugins\Fic.XTB.AdvancedAppManager.dll" />
+  </files>
+</package>

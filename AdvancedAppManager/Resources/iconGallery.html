@@ -1,0 +1,64 @@
+<html>
+<head>
+    <style>
+        .grid {
+            height: 100%;
+            width: -webkit-fill-available;
+            display: grid;
+            grid-template-columns: repeat(10,minmax(0,1fr));
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+
+        .img-container {
+            text-align: center;
+            border: 1px solid transparent;
+        }
+
+            .img-container:hover {
+                text-align: center;
+                border: 1px solid black;
+            }
+
+        img {
+            max-height: 100%;
+            max-width: 100%;
+            height: 70px;
+            width: 70px;
+            -ms-flex: 0 0 auto;
+            flex: 0 0 auto;
+            object-fit: scale-down;
+        }
+    </style>
+    <script>
+        function imageOnClick(id) {
+            var list = document.getElementsByClassName('img-container');
+            for (let item of list) {
+                item.style.borderColor = 'transparent';
+            }
+            document.getElementById(id).style.borderColor = 'black';
+            window.chrome.webview.postMessage(id);
+        }
+
+        window.chrome.webview.addEventListener('message', (event) => {
+
+            var gridElement = document.getElementsByClassName('grid')[0];
+            var icons = JSON.parse(event.data);
+
+            var iconsHtml = '';
+            for (let icon of icons) {
+                iconsHtml +=
+                    `<div id='${icon.id}' class='img-container'>
+                            <img onclick="imageOnClick('${icon.id}')" src='${icon.src}' />
+                        </div>`;
+            }
+
+            gridElement.innerHTML = iconsHtml;
+            console.log(icons);
+        });
+    </script>
+</head>
+<body>
+    <div class='grid'></div>
+</body>
+</html>
