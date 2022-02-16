@@ -84,7 +84,6 @@ namespace Fic.XTB.AdvancedAppManager
 
             ExecuteMethod(GetScripts);
             ExecuteMethod(GetImages);
-            ExecuteMethod(GetApps);
         }
         
         private void cbApp_SelectedIndexChanged(object sender, EventArgs e)
@@ -154,6 +153,9 @@ namespace Fic.XTB.AdvancedAppManager
 
             var dialogResult = MessageBox.Show("Are you sure you want to publish your app changes?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
             if (dialogResult == DialogResult.No) { return; }
+
+            tabControl.Enabled = false;
+            cbApp.Enabled = false;
 
             WorkAsync(new WorkAsyncInfo
             {
@@ -373,7 +375,10 @@ namespace Fic.XTB.AdvancedAppManager
 
                             cbIcon.Items.Clear();
                             cbIcon.Items.AddRange(images);
+
+                            GetApps();
                         }
+
                     }
                 });
         }
@@ -486,6 +491,10 @@ namespace Fic.XTB.AdvancedAppManager
                         cbApp.SelectedIndex = string.IsNullOrWhiteSpace(AppId)
                             ? 0
                             : apps.FindIndex(a => a.Entity.Id.ToString("D") == AppId);
+
+                        tabControl.Enabled = true;
+                        cbApp.Enabled = true;
+                        tsbUpdate.Enabled = true;
                     }
                 }
             });

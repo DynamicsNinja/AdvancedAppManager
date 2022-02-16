@@ -101,7 +101,7 @@ namespace Fic.XTB.AdvancedAppManager
             this.tsbUpdate});
             this.toolStripMenu.Location = new System.Drawing.Point(0, 0);
             this.toolStripMenu.Name = "toolStripMenu";
-            this.toolStripMenu.Size = new System.Drawing.Size(1203, 38);
+            this.toolStripMenu.Size = new System.Drawing.Size(1203, 34);
             this.toolStripMenu.TabIndex = 4;
             this.toolStripMenu.Text = "toolStrip1";
             // 
@@ -110,20 +110,21 @@ namespace Fic.XTB.AdvancedAppManager
             this.tsbClose.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.tsbClose.Image = ((System.Drawing.Image)(resources.GetObject("tsbClose.Image")));
             this.tsbClose.Name = "tsbClose";
-            this.tsbClose.Size = new System.Drawing.Size(34, 33);
+            this.tsbClose.Size = new System.Drawing.Size(34, 29);
             this.tsbClose.Click += new System.EventHandler(this.tsbClose_Click);
             // 
             // tssSeparator1
             // 
             this.tssSeparator1.Name = "tssSeparator1";
-            this.tssSeparator1.Size = new System.Drawing.Size(6, 38);
+            this.tssSeparator1.Size = new System.Drawing.Size(6, 34);
             // 
             // tsbUpdate
             // 
+            this.tsbUpdate.Enabled = false;
             this.tsbUpdate.Image = ((System.Drawing.Image)(resources.GetObject("tsbUpdate.Image")));
             this.tsbUpdate.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbUpdate.Name = "tsbUpdate";
-            this.tsbUpdate.Size = new System.Drawing.Size(179, 33);
+            this.tsbUpdate.Size = new System.Drawing.Size(179, 29);
             this.tsbUpdate.Text = "Update && Publish";
             this.tsbUpdate.Click += new System.EventHandler(this.tsbUpdate_Click);
             // 
@@ -141,6 +142,7 @@ namespace Fic.XTB.AdvancedAppManager
             this.cbApp.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.cbApp.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cbApp.Enabled = false;
             this.cbApp.FormattingEnabled = true;
             this.cbApp.Location = new System.Drawing.Point(47, 48);
             this.cbApp.Name = "cbApp";
@@ -612,6 +614,7 @@ namespace Fic.XTB.AdvancedAppManager
             this.tabControl.Controls.Add(this.tabPage1);
             this.tabControl.Controls.Add(this.tabPage2);
             this.tabControl.Controls.Add(this.tabAppSettings);
+            this.tabControl.Enabled = false;
             this.tabControl.Location = new System.Drawing.Point(3, 97);
             this.tabControl.Name = "tabControl";
             this.tabControl.SelectedIndex = 0;
