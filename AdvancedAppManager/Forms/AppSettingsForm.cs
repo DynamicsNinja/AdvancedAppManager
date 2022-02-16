@@ -26,6 +26,8 @@ namespace Fic.XTB.AdvancedAppManager.Forms
             if (appSettings.DataType == "Boolean") { cbBooleanValue.SelectedItem = appSettings.Value; }
         }
 
+        #region Events
+
         private void btnCancel_Click(object sender, System.EventArgs e)
         {
             this.Close();
@@ -48,5 +50,7 @@ namespace Fic.XTB.AdvancedAppManager.Forms
             var booleanValue = cbBooleanValue.SelectedItem.ToString();
             tbValue.Text = booleanValue;
         }
+
+        #endregion
     }
 }

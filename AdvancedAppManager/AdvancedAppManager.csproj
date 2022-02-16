@@ -257,6 +257,7 @@
   <ItemGroup>
     <EmbeddedResource Include="AdvancedAppManager.resx">
       <DependentUpon>AdvancedAppManager.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\AppSettingsForm.resx">
       <DependentUpon>AppSettingsForm.cs</DependentUpon>

@@ -3,6 +3,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using Fic.XTB.AdvancedAppManager.Forms;
@@ -22,8 +23,8 @@ namespace Fic.XTB.AdvancedAppManager
         public string RepositoryName => "AdvancedAppManager";
         public string UserName => "DynamicsNinja";
         public string DonationDescription => "Thanks for supporting Advanced App Manager";
-        public string EmailAccount => "ivan.ficko@outlook.com"; 
-        
+        public string EmailAccount => "ivan.ficko@outlook.com";
+
         private Settings mySettings;
 
         public List<string> ScriptLibraries;
@@ -50,6 +51,8 @@ namespace Fic.XTB.AdvancedAppManager
             DgvEvents = dgvEvents;
             DgvAppSettings = dgvAppSettings;
         }
+
+        #region Events
 
         private void AdvancedAppManager_Load(object sender, EventArgs e)
         {
@@ -83,6 +86,257 @@ namespace Fic.XTB.AdvancedAppManager
             ExecuteMethod(GetImages);
             ExecuteMethod(GetApps);
         }
+        
+        private void cbApp_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var selectedAppProxy = (AppProxy)cbApp.SelectedItem;
+            var app = selectedAppProxy.Entity;
+            var appId = app.Id.ToString("D");
+            var webresourceId = (Guid)app["webresourceid"];
+
+            foreach (WebresourceProxy wrp in cbIcon.Items)
+            {
+                if (wrp.Entity.Id != webresourceId) { continue; }
+
+                cbIcon.SelectedItem = wrp;
+            }
+
+
+            AppId = appId;
+            AppUniqueName = (string)app["uniquename"];
+
+            GetAppSettings(appId);
+            GetSecurityRoles();
+
+            tbName.Text = (string)app["name"];
+            tbDescription.Text = app.Contains("description") ? (string)app["description"] : "";
+
+            var navigationType = (OptionSetValue)app["navigationtype"];
+
+            cbNavigationType.SelectedIndex = navigationType.Value;
+
+            if (selectedAppProxy.EventHandlers == null)
+            {
+                dgvEvents.DataSource = null;
+            }
+            else
+            {
+                var bindingList = new BindingList<AppEventHandler>(selectedAppProxy.EventHandlers);
+                var source = new BindingSource(bindingList, null);
+                dgvEvents.DataSource = source;
+                //dgvEvents.DataSource = selectedAppProxy.EventHandlers;
+            }
+
+        }
+
+        private void tsbUpdate_Click(object sender, EventArgs e)
+        {
+            var app = ((AppProxy)cbApp.SelectedItem).Entity;
+            var eventHandlers = (BindingList<AppEventHandler>)((BindingSource)dgvEvents.DataSource).DataSource;
+            var eventsJson = JsonConvert.SerializeObject(eventHandlers);
+
+            var updatedApp = new Entity(app.LogicalName, app.Id);
+            updatedApp["name"] = tbName.Text.Trim();
+            updatedApp["description"] = tbDescription.Text.Trim();
+            updatedApp["navigationtype"] = new OptionSetValue(cbNavigationType.SelectedIndex);
+            updatedApp["webresourceid"] = ((WebresourceProxy)cbIcon.SelectedItem).Entity.Id;
+            updatedApp["eventhandlers"] = eventsJson;
+
+            var updateAppRequest = new UpdateRequest { Target = updatedApp };
+            var appSettingsRequests = GenerateAppSettingsRequests();
+            var appRolesRequests = GenerateAppRolesRequests();
+            var publishRequest = new PublishAllXmlRequest();
+
+            var organizationRequestCollection = new OrganizationRequestCollection { updateAppRequest };
+            organizationRequestCollection.AddRange(appSettingsRequests);
+            organizationRequestCollection.AddRange(appRolesRequests);
+            organizationRequestCollection.Add(publishRequest);
+
+            var dialogResult = MessageBox.Show("Are you sure you want to publish your app changes?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (dialogResult == DialogResult.No) { return; }
+
+            WorkAsync(new WorkAsyncInfo
+            {
+                Message = "Updating app",
+                Work = (worker, args) =>
+                {
+                    var executeMultipleRequest = new ExecuteMultipleRequest
+                    {
+                        Settings = new ExecuteMultipleSettings
+                        {
+                            ContinueOnError = false,
+                            ReturnResponses = true
+                        },
+                        Requests = organizationRequestCollection
+                    };
+
+                    Service.Execute(executeMultipleRequest);
+                },
+                PostWorkCallBack = (args) =>
+                {
+                    if (args.Error != null)
+                    {
+                        MessageBox.Show(args.Error.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        GetApps();
+                    }
+                }
+            });
+        }
+
+        private void btnEditEvent_Click(object sender, EventArgs e)
+        {
+            var eventHandler = (AppEventHandler)dgvEvents.CurrentRow?.DataBoundItem;
+
+            if (eventHandler == null) { return; }
+
+            var eventForm = new EventForm(this, eventHandler);
+            eventForm.ShowDialog();
+        }
+
+        private void btnAddEvent_Click(object sender, EventArgs e)
+        {
+            var eventForm = new EventForm(this, null);
+            eventForm.ShowDialog();
+        }
+
+        private void btnDeleteEvent_Click(object sender, EventArgs e)
+        {
+            var eventHandler = (AppEventHandler)dgvEvents.CurrentRow?.DataBoundItem;
+
+            if (eventHandler == null) { return; }
+
+            var list = (BindingList<AppEventHandler>)((BindingSource)dgvEvents.DataSource)?.DataSource;
+            list?.Remove(eventHandler);
+            dgvEvents.DataSource = null;
+
+            var source = new BindingSource(list, null);
+            dgvEvents.DataSource = source;
+        }
+
+        private void cbxFilterNumberSettings_CheckedChanged(object sender, EventArgs e)
+        {
+            FilterSettings();
+        }
+
+        private void cbxFilterStringSettings_CheckedChanged(object sender, EventArgs e)
+        {
+            FilterSettings();
+        }
+
+        private void cbxFilterBooleanSettings_CheckedChanged(object sender, EventArgs e)
+        {
+            FilterSettings();
+        }
+
+        private void btnEditSettings_Click(object sender, EventArgs e)
+        {
+            var appSettings = (AppSettings)dgvAppSettings.CurrentRow?.DataBoundItem;
+
+            if (appSettings == null) { return; }
+
+            var appSettingsForm = new AppSettingsForm(this, appSettings);
+            appSettingsForm.ShowDialog();
+        }
+
+        private void dgvAppSettings_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            var appSettings = (AppSettings)dgvAppSettings.CurrentRow?.DataBoundItem;
+
+            if (appSettings == null) { return; }
+
+            var appSettingsForm = new AppSettingsForm(this, appSettings);
+            appSettingsForm.ShowDialog();
+        }
+
+        private void dgvEvents_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
+        {
+            var eventHandler = (AppEventHandler)dgvEvents.CurrentRow?.DataBoundItem;
+
+            if (eventHandler == null) { return; }
+
+            var eventForm = new EventForm(this, eventHandler);
+            eventForm.ShowDialog();
+        }
+
+        private void btnClearSettings_Click(object sender, EventArgs e)
+        {
+            var appSettings = (AppSettings)dgvAppSettings.CurrentRow?.DataBoundItem;
+
+            if (appSettings == null) { return; }
+
+            appSettings.Value = null;
+            dgvAppSettings.Refresh();
+        }
+
+        private void cbIcon_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var selectedIcon = (WebresourceProxy)cbIcon.SelectedItem;
+
+            var base64 = (string)selectedIcon.Entity["content"];
+            var webResourceType = (OptionSetValue)selectedIcon.Entity["webresourcetype"];
+
+            var mimeType = "";
+            switch (webResourceType.Value)
+            {
+                case 11:
+                    mimeType = "image/svg+xml"; // svg
+                    break;
+                case 5:
+                    mimeType = "image/png"; // png
+                    break;
+
+            }
+
+            var html = $@"
+            <html>
+                <head>
+                    <style>
+                    .container{{
+                        height: 97px;
+                        width: 100%;
+                        background-color: #002050;
+                        display: -ms-flexbox;
+                        display: flex;
+                        -ms-flex-direction: row;
+                        flex-direction: row;
+                        -ms-flex-align: center;
+                        align-items: center;
+                        -ms-flex-pack: center;
+                        justify-content: center;
+                    }}
+                    
+                    img{{
+                        max-height: 100%;
+                        max-width: 100%;
+                        height: 70px;
+                        width: 70px;
+                        -ms-flex: 0 0 auto;
+                        flex: 0 0 auto;
+                        object-fit: scale-down;
+                    }}
+                    </style>
+                    <title>Basic Web Page</title>
+                </head>
+                <div class='container'>
+                    <img src='data:{mimeType};base64,{base64}' />
+                </div>
+            </html>";
+
+            wvIcon.NavigateToString(html);
+        }
+
+        private void btnChangeIcon_Click(object sender, EventArgs e)
+        {
+            _imageGalleryForm = _imageGalleryForm ?? new IconGalleryForm(this, Images);
+            _imageGalleryForm.ShowDialog();
+        }
+
+        #endregion
+
+        #region Methods
 
         private void GetImages()
         {
@@ -229,8 +483,8 @@ namespace Fic.XTB.AdvancedAppManager
                         cbApp.Items.Clear();
                         cbApp.Items.AddRange(apps.ToArray());
 
-                        cbApp.SelectedIndex = string.IsNullOrWhiteSpace(AppId) 
-                            ? 0 
+                        cbApp.SelectedIndex = string.IsNullOrWhiteSpace(AppId)
+                            ? 0
                             : apps.FindIndex(a => a.Entity.Id.ToString("D") == AppId);
                     }
                 }
@@ -280,104 +534,6 @@ namespace Fic.XTB.AdvancedAppManager
                         //var source = new BindingSource(bindingList, null);
 
                         FilterSettings();
-                    }
-                }
-            });
-        }
-
-        private void cbApp_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            var selectedAppProxy = (AppProxy)cbApp.SelectedItem;
-            var app = selectedAppProxy.Entity;
-            var appId = app.Id.ToString("D");
-            var webresourceId = (Guid)app["webresourceid"];
-
-            foreach (WebresourceProxy wrp in cbIcon.Items)
-            {
-                if(wrp.Entity.Id != webresourceId) { continue;}
-
-                cbIcon.SelectedItem = wrp;
-            }
-
-
-            AppId = appId;
-            AppUniqueName = (string)app["uniquename"];
-
-            GetAppSettings(appId);
-            GetSecurityRoles();
-
-            tbName.Text = (string)app["name"];
-            tbDescription.Text = app.Contains("description") ? (string)app["description"] : "";
-
-            var navigationType = (OptionSetValue)app["navigationtype"];
-
-            cbNavigationType.SelectedIndex = navigationType.Value;
-
-            if (selectedAppProxy.EventHandlers == null)
-            {
-                dgvEvents.DataSource = null;
-            }
-            else
-            {
-                //var bindingList = new BindingList<AppEventHandler>(selectedAppProxy.EventHandlers);
-                //var source = new BindingSource(bindingList, null);
-                dgvEvents.DataSource = selectedAppProxy.EventHandlers;
-            }
-
-        }
-
-        private void tsbUpdate_Click(object sender, EventArgs e)
-        {
-            var app = ((AppProxy)cbApp.SelectedItem).Entity;
-            var eventHandlers = (List<AppEventHandler>)dgvEvents.DataSource;
-            var eventsJson = JsonConvert.SerializeObject(eventHandlers);
-
-            var updatedApp = new Entity(app.LogicalName, app.Id);
-            updatedApp["name"] = tbName.Text.Trim();
-            updatedApp["description"] = tbDescription.Text.Trim();
-            updatedApp["navigationtype"] = new OptionSetValue(cbNavigationType.SelectedIndex);
-            updatedApp["webresourceid"] = ((WebresourceProxy)cbIcon.SelectedItem).Entity.Id;
-            updatedApp["eventhandlers"] = eventsJson;
-
-            var updateAppRequest = new UpdateRequest { Target = updatedApp };
-            var appSettingsRequests = GenerateAppSettingsRequests();
-            var appRolesRequests = GenerateAppRolesRequests();
-            var publishRequest = new PublishAllXmlRequest();
-
-            var organizationRequestCollection = new OrganizationRequestCollection { updateAppRequest };
-            organizationRequestCollection.AddRange(appSettingsRequests);
-            organizationRequestCollection.AddRange(appRolesRequests);
-            organizationRequestCollection.Add(publishRequest);
-
-            var dialogResult = MessageBox.Show("Are you sure you want to publish your app changes?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-            if (dialogResult == DialogResult.No) { return; }
-
-            WorkAsync(new WorkAsyncInfo
-            {
-                Message = "Updating app",
-                Work = (worker, args) =>
-                {
-                    var executeMultipleRequest = new ExecuteMultipleRequest
-                    {
-                        Settings = new ExecuteMultipleSettings
-                        {
-                            ContinueOnError = false,
-                            ReturnResponses = true
-                        },
-                        Requests = organizationRequestCollection
-                    };
-
-                    Service.Execute(executeMultipleRequest);
-                },
-                PostWorkCallBack = (args) =>
-                {
-                    if (args.Error != null)
-                    {
-                        MessageBox.Show(args.Error.ToString(), "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    else
-                    {
-                        GetApps();
                     }
                 }
             });
@@ -508,49 +664,6 @@ namespace Fic.XTB.AdvancedAppManager
             return result;
         }
 
-        private void btnEditEvent_Click(object sender, EventArgs e)
-        {
-            var eventHandler = (AppEventHandler)dgvEvents.CurrentRow?.DataBoundItem;
-
-            if (eventHandler == null) { return; }
-
-            var eventForm = new EventForm(this, eventHandler);
-            eventForm.ShowDialog();
-        }
-
-        private void btnAddEvent_Click(object sender, EventArgs e)
-        {
-            var eventForm = new EventForm(this, null);
-            eventForm.ShowDialog();
-        }
-
-        private void btnDeleteEvent_Click(object sender, EventArgs e)
-        {
-            var eventHandler = (AppEventHandler)dgvEvents.CurrentRow?.DataBoundItem;
-
-            if (eventHandler == null) { return; }
-
-            var list = (List<AppEventHandler>)dgvEvents.DataSource;
-            list.Remove(eventHandler);
-            dgvEvents.DataSource = null;
-            dgvEvents.DataSource = list;
-        }
-
-        private void cbxFilterNumberSettings_CheckedChanged(object sender, EventArgs e)
-        {
-            FilterSettings();
-        }
-
-        private void cbxFilterStringSettings_CheckedChanged(object sender, EventArgs e)
-        {
-            FilterSettings();
-        }
-
-        private void cbxFilterBooleanSettings_CheckedChanged(object sender, EventArgs e)
-        {
-            FilterSettings();
-        }
-
         private void FilterSettings()
         {
             var includeBool = cbxFilterBooleanSettings.Checked;
@@ -570,122 +683,16 @@ namespace Fic.XTB.AdvancedAppManager
             dgvAppSettings.DataSource = filteredList;
         }
 
-        private void btnEditSettings_Click(object sender, EventArgs e)
-        {
-            var appSettings = (AppSettings)dgvAppSettings.CurrentRow?.DataBoundItem;
-
-            if (appSettings == null) { return; }
-
-            var appSettingsForm = new AppSettingsForm(this, appSettings);
-            appSettingsForm.ShowDialog();
-        }
-
-        private void dgvAppSettings_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            var appSettings = (AppSettings)dgvAppSettings.CurrentRow?.DataBoundItem;
-
-            if (appSettings == null) { return; }
-
-            var appSettingsForm = new AppSettingsForm(this, appSettings);
-            appSettingsForm.ShowDialog();
-        }
-
-        private void dgvEvents_CellDoubleClick(object sender, DataGridViewCellEventArgs e)
-        {
-            var eventHandler = (AppEventHandler)dgvEvents.CurrentRow?.DataBoundItem;
-
-            if (eventHandler == null) { return; }
-
-            var eventForm = new EventForm(this, eventHandler);
-            eventForm.ShowDialog();
-        }
-
-        private void btnClearSettings_Click(object sender, EventArgs e)
-        {
-            var appSettings = (AppSettings)dgvAppSettings.CurrentRow?.DataBoundItem;
-
-            if (appSettings == null) { return; }
-
-            appSettings.Value = null;
-            dgvAppSettings.Refresh();
-        }
-
-        private void cbIcon_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            var selectedIcon = (WebresourceProxy)cbIcon.SelectedItem;
-
-            var base64 = (string)selectedIcon.Entity["content"];
-            var webResourceType = (OptionSetValue)selectedIcon.Entity["webresourcetype"];
-
-            var mimeType = "";
-            switch (webResourceType.Value)
-            {
-                case 11:
-                    mimeType = "image/svg+xml"; // svg
-                    break;
-                case 5:
-                    mimeType = "image/png"; // png
-                    break;
-
-            }
-
-            var html = $@"
-            <html>
-                <head>
-                    <style>
-                    .container{{
-                        height: 97px;
-                        width: 100%;
-                        background-color: #002050;
-                        display: -ms-flexbox;
-                        display: flex;
-                        -ms-flex-direction: row;
-                        flex-direction: row;
-                        -ms-flex-align: center;
-                        align-items: center;
-                        -ms-flex-pack: center;
-                        justify-content: center;
-                    }}
-                    
-                    img{{
-                        max-height: 100%;
-                        max-width: 100%;
-                        height: 70px;
-                        width: 70px;
-                        -ms-flex: 0 0 auto;
-                        flex: 0 0 auto;
-                        object-fit: scale-down;
-                    }}
-                    </style>
-                    <title>Basic Web Page</title>
-                </head>
-                <div class='container'>
-                    <img src='data:{mimeType};base64,{base64}' />
-                </div>
-            </html>";
-
-            wvIcon.NavigateToString(html);
-        }
-
-        private void btnChangeIcon_Click(object sender, EventArgs e)
-        {
-            _imageGalleryForm = _imageGalleryForm ?? new IconGalleryForm(this, Images);
-            _imageGalleryForm.ShowDialog();
-        }
-
         public void SetIconById(string id)
         {
             foreach (WebresourceProxy icon in cbIcon.Items)
             {
-                if (icon.Entity.Id.ToString("D") != id) { continue;}
+                if (icon.Entity.Id.ToString("D") != id) { continue; }
 
                 cbIcon.SelectedItem = icon;
             }
         }
 
-        private void dgv(object sender, EventArgs e)
-        {
-
-        }
+        #endregion
     }
 }

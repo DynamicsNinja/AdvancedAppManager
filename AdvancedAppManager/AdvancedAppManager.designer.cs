@@ -101,7 +101,7 @@ namespace Fic.XTB.AdvancedAppManager
             this.tsbUpdate});
             this.toolStripMenu.Location = new System.Drawing.Point(0, 0);
             this.toolStripMenu.Name = "toolStripMenu";
-            this.toolStripMenu.Size = new System.Drawing.Size(1203, 34);
+            this.toolStripMenu.Size = new System.Drawing.Size(1203, 38);
             this.toolStripMenu.TabIndex = 4;
             this.toolStripMenu.Text = "toolStrip1";
             // 
@@ -110,20 +110,20 @@ namespace Fic.XTB.AdvancedAppManager
             this.tsbClose.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.tsbClose.Image = ((System.Drawing.Image)(resources.GetObject("tsbClose.Image")));
             this.tsbClose.Name = "tsbClose";
-            this.tsbClose.Size = new System.Drawing.Size(34, 29);
+            this.tsbClose.Size = new System.Drawing.Size(34, 33);
             this.tsbClose.Click += new System.EventHandler(this.tsbClose_Click);
             // 
             // tssSeparator1
             // 
             this.tssSeparator1.Name = "tssSeparator1";
-            this.tssSeparator1.Size = new System.Drawing.Size(6, 34);
+            this.tssSeparator1.Size = new System.Drawing.Size(6, 38);
             // 
             // tsbUpdate
             // 
             this.tsbUpdate.Image = ((System.Drawing.Image)(resources.GetObject("tsbUpdate.Image")));
             this.tsbUpdate.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbUpdate.Name = "tsbUpdate";
-            this.tsbUpdate.Size = new System.Drawing.Size(179, 29);
+            this.tsbUpdate.Size = new System.Drawing.Size(179, 33);
             this.tsbUpdate.Text = "Update && Publish";
             this.tsbUpdate.Click += new System.EventHandler(this.tsbUpdate_Click);
             // 
@@ -341,13 +341,11 @@ namespace Fic.XTB.AdvancedAppManager
             this.Enabled});
             this.dgvEvents.Location = new System.Drawing.Point(6, 54);
             this.dgvEvents.Name = "dgvEvents";
-            this.dgvEvents.ReadOnly = true;
             this.dgvEvents.RowHeadersWidth = 62;
             this.dgvEvents.RowTemplate.Height = 28;
             this.dgvEvents.Size = new System.Drawing.Size(1177, 562);
             this.dgvEvents.TabIndex = 4;
             this.dgvEvents.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvEvents_CellDoubleClick);
-            this.dgvEvents.DoubleClick += new System.EventHandler(this.dgv);
             // 
             // EventName
             // 
@@ -355,7 +353,6 @@ namespace Fic.XTB.AdvancedAppManager
             this.EventName.HeaderText = "Event Name";
             this.EventName.MinimumWidth = 8;
             this.EventName.Name = "EventName";
-            this.EventName.ReadOnly = true;
             this.EventName.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             // 
             // FunctionName
@@ -364,7 +361,6 @@ namespace Fic.XTB.AdvancedAppManager
             this.FunctionName.HeaderText = "Function Name";
             this.FunctionName.MinimumWidth = 8;
             this.FunctionName.Name = "FunctionName";
-            this.FunctionName.ReadOnly = true;
             // 
             // LibraryName
             // 
@@ -372,7 +368,6 @@ namespace Fic.XTB.AdvancedAppManager
             this.LibraryName.HeaderText = "Library Name";
             this.LibraryName.MinimumWidth = 8;
             this.LibraryName.Name = "LibraryName";
-            this.LibraryName.ReadOnly = true;
             this.LibraryName.Resizable = System.Windows.Forms.DataGridViewTriState.True;
             // 
             // Parameters
@@ -381,7 +376,6 @@ namespace Fic.XTB.AdvancedAppManager
             this.Parameters.HeaderText = "Parameters";
             this.Parameters.MinimumWidth = 8;
             this.Parameters.Name = "Parameters";
-            this.Parameters.ReadOnly = true;
             // 
             // Enabled
             // 
@@ -389,7 +383,6 @@ namespace Fic.XTB.AdvancedAppManager
             this.Enabled.HeaderText = "Enabled";
             this.Enabled.MinimumWidth = 8;
             this.Enabled.Name = "Enabled";
-            this.Enabled.ReadOnly = true;
             // 
             // btnDeleteEvent
             // 

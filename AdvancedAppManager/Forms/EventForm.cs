@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using Fic.XTB.AdvancedAppManager.Model;
@@ -25,6 +26,8 @@ namespace Fic.XTB.AdvancedAppManager.Forms
             cbLibrary.Text = eventHandler.LibraryName;
             cbxEnabled.Checked = eventHandler.Enabled;
         }
+
+        #region Events
 
         private void btnCancel_Click(object sender, System.EventArgs e)
         {
@@ -61,7 +64,9 @@ namespace Fic.XTB.AdvancedAppManager.Forms
                 Enabled = cbxEnabled.Checked
             };
 
-            var list = (List<AppEventHandler>)_aam.DgvEvents.DataSource ?? new List<AppEventHandler>();
+            var eventHandlers = (BindingList<AppEventHandler>)((BindingSource)_aam.DgvEvents.DataSource)?.DataSource;
+
+            var list = eventHandlers ?? new BindingList<AppEventHandler>();
 
             if (_eventHandler == null)
             {
@@ -73,9 +78,13 @@ namespace Fic.XTB.AdvancedAppManager.Forms
             }
 
             _aam.DgvEvents.DataSource = null;
-            _aam.DgvEvents.DataSource = list;
+
+            var source = new BindingSource(list, null);
+            _aam.DgvEvents.DataSource = source;
 
             this.Close();
         }
+
+        #endregion
     }
 }

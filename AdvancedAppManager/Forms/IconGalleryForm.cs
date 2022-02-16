@@ -22,6 +22,7 @@ namespace Fic.XTB.AdvancedAppManager.Forms
             InitializeComponent();
         }
 
+        #region Events
         private async void IconGalleryForm_Load(object sender, System.EventArgs e)
         {
             wvIconGallery.WebMessageReceived += SetSelectedImage;
@@ -35,6 +36,21 @@ namespace Fic.XTB.AdvancedAppManager.Forms
 
             wvIconGallery.NavigateToString(html);
         }
+
+        private void btnSelect_Click(object sender, System.EventArgs e)
+        {
+            _aam.SetIconById(_selectedImageId);
+            Close();
+        }
+
+        private void btnCancel_Click(object sender, System.EventArgs e)
+        {
+            Close();
+        }
+
+        #endregion
+
+        #region Methods
 
         private void SendIconsToHtml(object sender, CoreWebView2NavigationCompletedEventArgs args)
         {
@@ -77,15 +93,6 @@ namespace Fic.XTB.AdvancedAppManager.Forms
             _selectedImageId = args.TryGetWebMessageAsString();
         }
 
-        private void btnSelect_Click(object sender, System.EventArgs e)
-        {
-            _aam.SetIconById(_selectedImageId);
-            Close();
-        }
-
-        private void btnCancel_Click(object sender, System.EventArgs e)
-        {
-            Close();
-        }
+        #endregion
     }
 }
