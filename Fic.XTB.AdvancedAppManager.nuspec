@@ -11,13 +11,15 @@
     <iconUrl>https://raw.githubusercontent.com/DynamicsNinja/AdvancedAppManager/main/docs/img/aam-300.png</iconUrl>
     <description>XrmToolBox tool that provides you with advanced model-driven app customizations.</description>
     <summary>XrmToolBox tool that provides you with advanced model-driven app customizations.</summary>
-    <releaseNotes>1.2022.2.1
+    <releaseNotes>1.2022.4.1
+- Fixed issue when events grid is empty
+1.2022.2.1
 - Initial version of the tool released
     </releaseNotes>
     <copyright>Copyright 2022 Ivan Ficko</copyright>
     <tags>XrmToolBox Plugins AdvancedAppManager</tags>
     <dependencies>
-      <dependency id="XrmToolBox" version="1.2018.6.25" />
+      <dependency id="XrmToolBox" version="1.2022.4.55" />
     </dependencies>
   </metadata>
   <files>

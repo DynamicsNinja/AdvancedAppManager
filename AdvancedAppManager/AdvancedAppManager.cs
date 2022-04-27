@@ -131,7 +131,7 @@ namespace Fic.XTB.AdvancedAppManager
         private void tsbUpdate_Click(object sender, EventArgs e)
         {
             var app = ((AppProxy)cbApp.SelectedItem).Entity;
-            var eventHandlers = (BindingList<AppEventHandler>)((BindingSource)dgvEvents.DataSource).DataSource;
+            var eventHandlers = (BindingList<AppEventHandler>)((BindingSource)dgvEvents.DataSource)?.DataSource;
             var eventsJson = JsonConvert.SerializeObject(eventHandlers);
 
             var updatedApp = new Entity(app.LogicalName, app.Id);
