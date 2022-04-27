@@ -1,4 +1,4 @@
-# In-App Notification Builder for [XrmToolBox](http://www.xrmtoolbox.com)
+# Advanced App Manager for [XrmToolBox](http://www.xrmtoolbox.com)
 
 ![Nuget](https://img.shields.io/nuget/dt/Fic.XTB.AdvancedAppManager) ![Nuget](https://img.shields.io/nuget/v/Fic.XTB.AdvancedAppManager)
 
